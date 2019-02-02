@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<meta charset="utf-8">
+	<title>키워드 장소 검색</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="/css/bootstrap.min.css" rel="stylesheet">
+
+	<style type="text/css">
+	.font-small {
+		font-size : .6rem;
+	}
+	</style>
+	<link href="/css/font-awesome.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+	
+		<!-- head  -->
+		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+			<div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item">
+						<div class="dropdown">
+							<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">인기검색어</button>
+							<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+								<a  th:each="trend,iterstat : ${trendKeyword}" class="trendKeyword_rank dropdown-item" href="#"> 
+								  	<span style="width: 10xp;" th:text="${iterstat.index + 1}"></span>.
+								  	<span class="rank_keyword" th:text="${trend.keyword}"></span>
+								    <span th:text="${trend.keywordSearchCount}" class="badge badge-primary badge-pill"></span>
+								</a>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div class="mx-auto order-0">
+				<span class="navbar-brand mx-auto">키워드 장소 검색</span>
+			</div>
+			<div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+				<ul class="navbar-nav ml-auto">
+					<li class="nav-item">
+						<span sec:authorize="isAuthenticated()">
+							<a id="btn_logout" class="nav-link" href="#">
+							<span sec:authentication="name"></span>님 
+							Logout</a>
+						</span>
+					</li>
+				</ul>
+			</div>
+		</nav>
+		
+		<!--search box  -->
+		<form th:action="@{/searchKeword}"  method="post">
+			<input type="hidden" name="page" value="1" />
+			<input type="hidden" name="size" value="10"/>
+			<div class="row justify-content-md-center" style="margin-top: 10px;">
+				<select class="col col-lg-2" data-style="btn-info" id="category_group_code" name="category_group_code" style="margin-left:15px;">
+					<option value="">전체</option>
+					<option th:each="code: ${categroyCode}" th:selected="(${code.key} == ${codeVal})"  th:value="${code.key}" th:text="${code.value}"></option>
+				</select>	
+				<input th:value="${inputKeyword}" type="text" name="keyword" class="col col-md-5"  placeholder="Search keywords">
+				<span class="col col-lg-2" style="padding-left: 0px;">
+					<button class="btn btn-lg btn-success" type="submit">Search</button>
+				</span>
+			</div>
+		</form>	
+		
+		<!-- searchList -->
+		<div class="list-group" style="margin-top: 10px;">
+			<div th:each="placeInfo : ${placeInfolist}" class="list-group-item list-group-item-action flex-column align-items-start">
+				<div class="d-flex w-100 justify-content-between">
+					<h5 th:text="${placeInfo.place_name}" class="mb-1"></h5>
+					<small class="text-muted" th:text="${placeInfo.category_name}"></small>
+				</div>
+				<p class="mb-1" >
+					<i class="fa fa-map-marker"></i> <span th:text="${placeInfo.road_address_name}"></span>
+					(<small class="mb-1" th:text="|지번: ${placeInfo.address_name}|"></small>)
+					<a th:href="|http://map.daum.net/link/map/${placeInfo.id}|" class="btn btn-outline-secondary btn-sm font-small" target="_blank">지도보기</a>
+				</p> 
+				<div class="d-flex w-100 justify-content-between">
+					<p class="mb-1">
+						<i class="fa fa-phone-square"></i> <small class="text-muted" th:text="${placeInfo.phone}">&nbsp;</small>
+					</p>
+					<p class="mb-1">
+						<a th:href="${placeInfo.place_url}" class="btn btn-secondary btn-sm " role="button" target="_blank">Daum에서 보기</a>
+					</p>
+				</div>
+			</div>
+			<div th:if="${placeInfolist} !=null and ${#lists.isEmpty(placeInfolist)}">
+				<div class="alert alert-warning" role="alert">
+					조회된 데이터가 없습니다.
+				</div>
+			</div>
+			<!-- pagenation -->
+			<div class="row justify-content-center" style="margin-top: 10px;">
+				<nav th:if="(${placeInfoMeta} !=null And ${!placeInfoMeta.is_end} )or ${currentPageNum > 1}" aria-label="Page navigation">
+					<ul class="pagination">
+						<li th:each="pageNo : ${#numbers.sequence(0, totalPage - 1)}" class="page-item">
+							<a th:text="${pageNo + 1}" th:if="${(pageNo+1)  eq currentPageNum}" href="javascript:void(0);" class="page-link">1</a> 
+							<a th:if="${not ((pageNo+1) eq currentPageNum)}" th:href="@{${'/searchKeword'}(page=${pageNo + 1},size=${pageSize},keyword=${inputKeyword},category_group_code=${codeval})}" class="page-link"> 
+								<span th:text="${pageNo + 1}"></span>
+							</a>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+		<!--logout form  -->
+		<form id="logoutForm" th:action="@{/logout}" method="post">
+			<input type="hidden" th:name="${_csrf.parameterName}"  th:value="${_csrf.token}" />
+		</form>
+	</div>
+	<script src="/js/jquery-3.3.1.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			//로그아웃 버튼
+			$('#btn_logout').click(function(){
+				$('#logoutForm').submit();
+			});
+			
+			//인기검색어 링크
+			$('.trendKeyword_rank').click(function(){
+				$("input[name='keyword']").val( $(this).find(".rank_keyword").text());
+			});
+		});
+	</script>
+</body>
+</html>
