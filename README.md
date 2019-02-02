@@ -1,2 +1,1 @@
 # searchPlace
-searchPlace
