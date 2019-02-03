@@ -35,7 +35,8 @@
 ```
 
 ## 시연사이트 
-     1. http://robotwar14.cafe24.com 로 접속하면 테스트 가능
+   http://robotwar14.cafe24.com 로 접속하면 테스트 가능
+ 
  
 ## 테스트 계정 (아이디/비밀번호)
 ```
