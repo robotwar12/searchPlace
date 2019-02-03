@@ -27,10 +27,8 @@ public class RestApiHelper {
 		// 헤더설정
 		HttpEntity<String> entity = new HttpEntity<String>(getHeaders(header));
 		URI endUri = getURI(endPointUrl, param);
-		System.out.println(endUri.toString());
 		// api 호출
 		ResponseEntity<String> response = restTemplate.exchange(endUri, HttpMethod.GET, entity, String.class);
-		System.out.println(response.getBody());
 		
 		return 	response.getBody();
 	}
